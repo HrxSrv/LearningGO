@@ -1,15 +1,11 @@
 package note
 
 import (
+	"errors"
 	"net/http"
 	"note-api/internal/domain"
-	// "time"
-
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	// "go.mongodb.org/mongo-driver/bson"
-	// "go.mongodb.org/mongo-driver/bson/primitive"
-	// "go.mongodb.org/mongo-driver/mongo"
 )
 
 type Handler struct {
@@ -38,6 +34,8 @@ func (h *Handler) GetNote( c *gin.Context){
 
 }
 
+
+//CreateNote creates a note
 func (h *Handler) CreateNote(c *gin.Context) {
 
 	var req CreateNoteRequest
@@ -61,7 +59,7 @@ func (h *Handler) CreateNote(c *gin.Context) {
 }
 
 
-//GetNoteByID
+//GetNoteByID gets a note by a given id
 
 func (h *Handler) GetNoteByID (c *gin.Context){
      
@@ -99,61 +97,97 @@ func (h *Handler) GetNoteByID (c *gin.Context){
 
 }
 
+//UpdateNote updates a note
+func (h *Handler) UpdateNote (c *gin.Context){
 
-// //UpdateNote
-
-// func (h *Handler) UpdateNote (c *gin.Context){
-
-// 	id:=c.Param("id")
-
-// 	objectId,err:=primitive.ObjectIDFromHex(id)
-
-// 	if err!=nil{
-//     c.JSON(http.StatusBadRequest,gin.H{
-// 		"error":"Bad request son",
-// 	})
-// 	return
-// 	}
+	var updateRequest UpdateNoteRequest
     
-// 	var req UpdateNoteRequest
+	if err:=c.ShouldBindJSON(&updateRequest); err!=nil{
+		c.JSON(http.StatusBadRequest,gin.H{
+			"error":"Bad req son",
+		})
+		return
+       
+	}
 
-// 	if err:=c.ShouldBindJSON(&req); err!=nil{
-// 		c.JSON(http.StatusBadRequest,gin.H{
-// 			"error":"Bad request son",
-// 		})
-// 	return	
-// 	}
+	id:=c.Param("id")
     
-// 	update := bson.M{
-// 		"$set":bson.M{
-// 			"title":req.Title,
-// 			"content":req.Content,
-// 		},
-// 	}
-//     ctx:=c.Request.Context()
+	objectId,err:=primitive.ObjectIDFromHex(id)
+
+	if err!=nil{
+		c.JSON(http.StatusBadRequest,gin.H{
+			"error":"Bad req son",
+		})
+		return
+	}
+
+	err = h.Service.UpdateNote(c.Request.Context(),&updateRequest,objectId)
+
+	if err!=nil{
+
+		switch {
+		case errors.Is(err, domain.ErrNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK,gin.H{
+		"id":id,
+		"mssg":"Updated successfully son",
+	})
+}
+
+//DeleteNote deletes a note of given Id
+func (h *Handler) DeleteNote (c *gin.Context){
+
+	id:=c.Param("id")
+
+	objectId,err:= primitive.ObjectIDFromHex(id)
+
+	if err!=nil{
+		c.JSON(http.StatusBadRequest,gin.H{
+			"error":"Bad req son",
+		})
+		return
+	}
+    
+	err = h.Service.DeleteNote(c.Request.Context(),objectId)
+    
+
+	if err!=nil{
+		switch {
+		case errors.Is(err, domain.ErrNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK,gin.H{
+		"id":id,
+		"mssg":"note nuked son",
+	})
+
+}
 
 
-//     result,err:=h.Collection.UpdateByID(ctx,objectId,update)
 
-//     if result.MatchedCount==0{
-// 		c.JSON(http.StatusNotFound,gin.H{
-// 			"error":"didn't find the doc son",
-// 		})
-// 		return
-// 	}
 
-// 	 if err!=nil{
-// 		c.JSON(http.StatusNotFound,gin.H{
-// 			"error":"Shit didnt workout bro",
-// 		})
-// 		return
-// 	}
 
-// 	c.JSON(http.StatusOK,gin.H{
-// 		"matched":result.MatchedCount,
-// 		"modified":result.ModifiedCount,
-// 	})
-// }
+
+
+
+
+
+
+
+
+
+
 
 // //DeleteNote
 

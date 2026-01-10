@@ -37,7 +37,7 @@ func StartServer(){
 	 r.GET("/notes", noteHandler.GetNote)
 	 r.POST("/notes", noteHandler.CreateNote)
 	 r.GET("/notes/:id",noteHandler.GetNoteByID)
-	//  r.PUT("/notes/:id",noteHandler.UpdateNote)
-	//  r.DELETE("/notes/:id",noteHandler.DeleteNote)
+	 r.PUT("/notes/:id",noteHandler.UpdateNote)
+	 r.DELETE("/notes/:id",noteHandler.DeleteNote)
 	 r.Run(":" + app.Config.Port)
 }

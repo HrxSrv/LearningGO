@@ -5,7 +5,7 @@ import (
 	"errors"
 	"note-api/internal/domain"
 	"time"
-
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -70,5 +70,32 @@ func (s *Service) GetNoteById (ctx context.Context,id primitive.ObjectID) (*Note
 	 }
 
 	 return note,nil
+
+}
+
+
+func (s *Service) UpdateNote (ctx context.Context, req *UpdateNoteRequest,id primitive.ObjectID) error {
+
+    update:= bson.M{
+		"title":req.Title,
+		"content":req.Content,
+	}
+	err := s.Repository.Update(ctx,id,update)
+
+	if err!=nil{
+		return err;
+	}
+	return err
+}
+
+func (s *Service) DeleteNote (ctx context.Context, id primitive.ObjectID) error{
+
+	err:= s.Repository.Delete(ctx,id)
+
+	if err!=nil{
+		return err
+	}
+	
+	return nil
 
 }
